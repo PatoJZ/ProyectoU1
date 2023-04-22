@@ -13,7 +13,37 @@ typedef struct Guardian
     int DefPoints;
     struct Guardian *next;
 } Guardian;
+typedef struct ColaEnemigosDerrotados {
+    Guardian *enemigo;
+    struct ColaEnemigosDerrotados *siguiente;
+} ColaEnemigosDerrotados;
 
+
+void encolarEnemigoDerrotado(Guardian *enemigo, ColaEnemigosDerrotados **cabezaColaDerrotados) {
+    ColaEnemigosDerrotados *nuevoNodo = (ColaEnemigosDerrotados*) malloc(sizeof(ColaEnemigosDerrotados));
+    nuevoNodo->enemigo = enemigo;
+    nuevoNodo->siguiente = NULL;
+
+    if (*cabezaColaDerrotados == NULL) {
+        *cabezaColaDerrotados = nuevoNodo;
+    } else {
+        ColaEnemigosDerrotados *nodoActual = *cabezaColaDerrotados;
+        while (nodoActual->siguiente != NULL) {
+            nodoActual = nodoActual->siguiente;
+        }
+        nodoActual->siguiente = nuevoNodo;
+    }
+}
+void mostrarEnemigosDerrotados(ColaEnemigosDerrotados *cabezaColaDerrotados) 
+{
+    printf("Enemigos derrotados:\n");
+
+    ColaEnemigosDerrotados *nodoActual = cabezaColaDerrotados;
+    while (nodoActual != NULL) {
+        printf(" Derrotaste a %s\n", nodoActual->enemigo->name);
+        nodoActual = nodoActual->siguiente;
+    }
+}
 void SelectGuardian(Guardian **listaGuardianes, Guardian **listaGuardianJugador)
 {
     int IdGuerrero;
@@ -124,7 +154,7 @@ void freeGuardian(Guardian **listaGuardianes)
         current = next;
     }
 }
-void SelectEnemyGuardians(Guardian **listaGuardianes, Guardian **listaGuardianesEnemigo)
+void SelectEnemyGuardians(Guardian **listaGuardianes, Guardian **listaGuardianesEnemigo, int dificultad)
 {
     Guardian *listaGuardianesAux = NULL;
     int numGuardianes = 0;
@@ -136,7 +166,7 @@ void SelectEnemyGuardians(Guardian **listaGuardianes, Guardian **listaGuardianes
         current = current->next;
     }
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < dificultad; i++)
     {
         int randomIndex = rand() % numGuardianes + 1;
         current = *listaGuardianes;
@@ -173,6 +203,7 @@ int getRollResult()
 void combat(Guardian *jugador, Guardian *enemigos)
 {
     int turno = 1;
+    ColaEnemigosDerrotados *cabezaColaDerrotados = NULL;
     Guardian JugadorCopia = *jugador;
     Guardian *actual = enemigos;
     Guardian *previo = NULL;
@@ -181,7 +212,7 @@ void combat(Guardian *jugador, Guardian *enemigos)
     int accion1, accion2 = 0;
     while (jugador->health > 0 && actual != NULL)
     {
-        system("cls");
+        printf("---------------------\n");
         printf("Enfrentando a %s\n", actual->name);
         printf("Salud del jugador: %d\n", jugador->health);
         printf("Salud del enemigo: %d\n", actual->health);
@@ -192,7 +223,9 @@ void combat(Guardian *jugador, Guardian *enemigos)
                 printf("Es tu turno:\n");
                 printf("1 - Atacar\n");
                 printf("2 - Defenderte\n");
+                printf(" Seleccione una opcion: ");
                 scanf("%d", &accion1);
+                printf("\n");
                 dados = getRollResult();
                 printf("Te ha salido un %d\n", dados);
                 if (accion1 == 1)
@@ -258,7 +291,9 @@ void combat(Guardian *jugador, Guardian *enemigos)
                     printf("Te has salido un 6, tienes un turno adicional\n");
                     printf("1 - Atacar\n");
                     printf("2 - Defenderte\n");
+                    printf(" Seleccione una opcion: ");
                     scanf("%d", &accion1);
+                    printf("\n");
                     dados = getRollResult();
                     printf("Te ha salido un %d\n", dados);
                     if (accion1 == 1)
@@ -387,7 +422,7 @@ void combat(Guardian *jugador, Guardian *enemigos)
                     printf("Al bot le ha salido un %d\n", dados);
                     if (accion2 == 1)
                     {
-                        printf("El bot ha elegido atacar");
+                        printf("El bot ha elegido atacar\n");
                         if (dados == 1 || dados == 3 || dados == 5)
                         {
 
@@ -454,8 +489,9 @@ void combat(Guardian *jugador, Guardian *enemigos)
             {
                 // el jugador ha derrotado al enemigo actual
                 printf("¡Has derrotado a %s!\n", actual->name);
-
-                // actualiza los punteros "actual" y "previo"
+                // Encolar para tener un historial de enemigos
+                encolarEnemigoDerrotado(actual, &cabezaColaDerrotados);
+                // Actualiza los punteros "actual" y "previo"
                 if (previo == NULL)
                 {
                     enemigos = actual->next; // el primer enemigo de la lista cambia
@@ -473,6 +509,8 @@ void combat(Guardian *jugador, Guardian *enemigos)
                 {
                     // se han derrotado a todos los enemigos de la lista
                     printf("Has derrotado a todos los enemigos!\n");
+
+                    mostrarEnemigosDerrotados(cabezaColaDerrotados);
                     break; // sale del bucle interno si no hay más enemigos en la lista
                 }
                 else
@@ -490,7 +528,9 @@ int main(int argc, char *argv[])
     Guardian *listaGuardianes = NULL;
     Guardian *ListaGuardianJugador = NULL;
     Guardian *ListaGuardianesEnemigo = NULL;
+    
     int id = 0;
+    int dificultad = 0;
     srand(time(NULL));
     if (argc != 2)
     {
@@ -527,12 +567,14 @@ int main(int argc, char *argv[])
     int personaje_Elegido = 0;
     do
     {
-        printf("Selecciona una opcion:\n");
+        printf("---------------------- BIENVENIDO A The Guardians Tournament --------------------------------\n");
         printf("1. Seleccionar un Personaje para pelear\n");
         printf("2. Cree su propio Personaje\n");
         printf("3. Iniciar Torneo\n");
         printf("4. Salir\n");
+        printf("Selecciona una opcion: ");
         scanf("%d", &opcion);
+        printf("\n");
         switch (opcion)
         {
         case 1:
@@ -559,7 +601,26 @@ int main(int argc, char *argv[])
         case 3:
             if (personaje_Elegido == 1)
             {
-                SelectEnemyGuardians(&listaGuardianes, &ListaGuardianesEnemigo);
+                printf("Seleccione Dificultad\n");
+                printf("[1] Principiante (3 Enemigos a derrotar)\n");
+                printf("[2] Intermedio   (5 Enemigos a derrotar)\n");
+                printf("[3] Experto      (7 Enemigos a derrotar)\n");
+                scanf("%d", &dificultad);
+                while (dificultad < 1 || dificultad > 3)
+                {
+                    system("cls");
+                    printf("OPCION NO VALIDA, INGRESE UNA OPCION CORRECTA\n");
+                    printf("Seleccione Dificultad\n");
+                    printf("[1] Principiante (3 Enemigos a derrotar)\n");
+                    printf("[2] Intermedio   (5 Enemigos a derrotar)\n");
+                    printf("[3] Experto      (7 Enemigos a derrotar)\n");
+                    scanf("%d", &dificultad);
+                }
+                if (dificultad == 1 || dificultad == 2 ||  dificultad == 3)
+                {
+                    dificultad += dificultad + 1;
+                }
+                SelectEnemyGuardians(&listaGuardianes, &ListaGuardianesEnemigo, dificultad);
                 printf("------- LISTA Enemigos -------\n");
                 printGuardian(ListaGuardianesEnemigo);
                 combat(ListaGuardianJugador, ListaGuardianesEnemigo);
