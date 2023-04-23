@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
+
 
 typedef struct Guardian
 {
@@ -209,7 +211,7 @@ void printCharacterStatus(Guardian *personaje, Guardian *Enemigos) // imprime el
         printf("---------------------\n");
         printf("Salud del jugador: %d\n",personaje->health);
         printf("Defensa del personaje: %d\n",personaje -> DefPoints);
-        printf("\n Enfrentando a %s\n", Enemigos->name);
+        printf("\nEnfrentando a %s\n", Enemigos->name);
         printf("Salud del enemigo: %d\n", Enemigos->health);
         printf("Defensa del enemigo: %d\n",Enemigos -> DefPoints);
 }
@@ -233,7 +235,7 @@ void StartFight(Guardian *jugador, Guardian *enemigos)
             {
                 system("cls");
                 printCharacterStatus(JugadorCopia, actual);
-                printf("Es tu turno:\n");
+                printf("\nEs tu turno:\n");
                 printf("1 - Atacar\n");
                 printf("2 - Defenderte\n");
                 printf("Seleccione una opcion: ");
@@ -681,7 +683,9 @@ int main(int argc, char *argv[])
             if(personajeCreado == 0)
             {
                 addGuardian_Manual(&ListaGuardianJugador);
+                printf("------- Tu Guardian -------\n");
                 printGuardian(ListaGuardianJugador);
+                sleep(3);
                 personajeCreado = 1;
                 personaje_Elegido = 1;
             }else{
