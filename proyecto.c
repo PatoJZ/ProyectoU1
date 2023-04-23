@@ -19,7 +19,8 @@ typedef struct ColaEnemigosDerrotados {
 } ColaEnemigosDerrotados;
 
 
-void encolarEnemigoDerrotado(Guardian *enemigo, ColaEnemigosDerrotados **cabezaColaDerrotados) {
+void encolarEnemigoDerrotado(Guardian *enemigo, ColaEnemigosDerrotados **cabezaColaDerrotados) // almacena el historial de enemigos derrotados
+{
     ColaEnemigosDerrotados *nuevoNodo = (ColaEnemigosDerrotados*) malloc(sizeof(ColaEnemigosDerrotados));
     nuevoNodo->enemigo = enemigo;
     nuevoNodo->siguiente = NULL;
@@ -34,7 +35,7 @@ void encolarEnemigoDerrotado(Guardian *enemigo, ColaEnemigosDerrotados **cabezaC
         nodoActual->siguiente = nuevoNodo;
     }
 }
-void getResult(ColaEnemigosDerrotados *cabezaColaDerrotados) 
+void getResult(ColaEnemigosDerrotados *cabezaColaDerrotados) // muestra el historial de los derrotados 
 {
     printf("Enemigos derrotados:\n");
 
@@ -44,8 +45,9 @@ void getResult(ColaEnemigosDerrotados *cabezaColaDerrotados)
         nodoActual = nodoActual->siguiente;
     }
 }
-void SelectCharacter(Guardian **listaGuardianes, Guardian **listaGuardianJugador)
+void SelectCharacter(Guardian **listaGuardianes, Guardian **listaGuardianJugador) // selecciona un personaje después de cargar la lista
 {
+
     int IdGuerrero;
     printf("Seleccione un personaje para Jugar: ");
     scanf("%d", &IdGuerrero);
@@ -76,6 +78,7 @@ void SelectCharacter(Guardian **listaGuardianes, Guardian **listaGuardianJugador
 }
 void addGuardian(Guardian **head, int id, char *name, char *type, int health, int AttackPoints, int DefPoints)
 {
+    //añade los guardianes automaticamente, pensado por el ingreso de los guardianes por el archivo.txt
     Guardian *newGuardian = malloc(sizeof(Guardian));
     strcpy(newGuardian->name, name);
     strcpy(newGuardian->type, type);
@@ -86,7 +89,8 @@ void addGuardian(Guardian **head, int id, char *name, char *type, int health, in
     newGuardian->next = *head;
     *head = newGuardian;
 }
-void addGuardian_Manual(Guardian** head) {
+void addGuardian_Manual(Guardian** head) // añadir un guardian manualmente
+{
     Guardian* newGuardian = malloc(sizeof(Guardian));
     int opcion = 1;
     newGuardian->id = 1;
@@ -134,7 +138,7 @@ void addGuardian_Manual(Guardian** head) {
     newGuardian -> next = *head;
     *head = newGuardian;
 }
-void printGuardian(Guardian *head)
+void printGuardian(Guardian *head) // print de listas por defecto
 {
     Guardian *current = head;
     while (current != NULL)
@@ -155,6 +159,7 @@ void freeGuardian(Guardian **listaGuardianes)
 }
 void SelectEnemyGuardians(Guardian **listaGuardianes, Guardian **listaGuardianesEnemigo, int dificultad)
 {
+    //selecciona por medio de la dificultad, la cantidad de guardianes
     Guardian *listaGuardianesAux = NULL;
     int numGuardianes = 0;
     int Elegido = 0;
@@ -194,21 +199,24 @@ void SelectEnemyGuardians(Guardian **listaGuardianes, Guardian **listaGuardianes
     }
     freeGuardian(&listaGuardianesAux);
 }
-int getRollResult()
+int getRollResult() // otorga el resultado del dado
 {
     int dado = rand() % 6 + 1;
     return dado;
 }
-void printCharacterStatus(Guardian *personaje, Guardian *Enemigos)
+void printCharacterStatus(Guardian *personaje, Guardian *Enemigos) // imprime el estado de los guardianes 
 {
         printf("---------------------\n");
-        printf("Enfrentando a %s\n", Enemigos->name);
         printf("Salud del jugador: %d\n",personaje->health);
+        printf("Defensa del personaje: %d\n",personaje -> DefPoints);
+        printf("\n Enfrentando a %s\n", Enemigos->name);
         printf("Salud del enemigo: %d\n", Enemigos->health);
+        printf("Defensa del enemigo: %d\n",Enemigos -> DefPoints);
 }
 void StartFight(Guardian *jugador, Guardian *enemigos)
 {
     int turno = 1;
+    //inicializa las listas que se utilizarán en el combate
     ColaEnemigosDerrotados *cabezaColaDerrotados = NULL;
     Guardian *JugadorCopia = jugador;
     Guardian *actual = enemigos;
