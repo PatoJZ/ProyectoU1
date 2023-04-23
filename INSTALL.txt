@@ -1,0 +1,7 @@
+Pasos para instalar
+
+git clone https://github.com/PatoJZ/ProyectoU1
+
+gcc proyecto.c
+
+proyecto.exe ListaGuardianes.txt

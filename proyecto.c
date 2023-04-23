@@ -34,7 +34,7 @@ void encolarEnemigoDerrotado(Guardian *enemigo, ColaEnemigosDerrotados **cabezaC
         nodoActual->siguiente = nuevoNodo;
     }
 }
-void mostrarEnemigosDerrotados(ColaEnemigosDerrotados *cabezaColaDerrotados) 
+void getResult(ColaEnemigosDerrotados *cabezaColaDerrotados) 
 {
     printf("Enemigos derrotados:\n");
 
@@ -44,7 +44,7 @@ void mostrarEnemigosDerrotados(ColaEnemigosDerrotados *cabezaColaDerrotados)
         nodoActual = nodoActual->siguiente;
     }
 }
-void SelectGuardian(Guardian **listaGuardianes, Guardian **listaGuardianJugador)
+void SelectCharacter(Guardian **listaGuardianes, Guardian **listaGuardianJugador)
 {
     int IdGuerrero;
     printf("Seleccione un personaje para Jugar: ");
@@ -66,7 +66,7 @@ void SelectGuardian(Guardian **listaGuardianes, Guardian **listaGuardianJugador)
             }
             current->next = *listaGuardianJugador;
             *listaGuardianJugador = current;
-            printf("El Personaje n°%d ha sido seleccionado.\n", IdGuerrero);
+            printf("El Personaje n%d ha sido seleccionado.\n", IdGuerrero);
             return;
         }
         prev = current;
@@ -74,7 +74,6 @@ void SelectGuardian(Guardian **listaGuardianes, Guardian **listaGuardianJugador)
     }
     printf("El Personaje N %d no fue encontrado\n", IdGuerrero);
 }
-
 void addGuardian(Guardian **head, int id, char *name, char *type, int health, int AttackPoints, int DefPoints)
 {
     Guardian *newGuardian = malloc(sizeof(Guardian));
@@ -129,9 +128,9 @@ void addGuardian_Manual(Guardian** head) {
     default:
         break;
     }
-    newGuardian -> health = rand()% 550 + 450;
-    newGuardian -> AttackPoints = rand()% 200 + 100;
-    newGuardian -> DefPoints = rand()% 100 + 30;
+    newGuardian -> health = (rand()% (550 - 450 + 1)) + 450; //genera un numero entre 450 y 550
+    newGuardian -> AttackPoints = (rand()% (200 - 100 + 1)) + 100;
+    newGuardian -> DefPoints = (rand()% (100 - 30 + 1)) + 100;
     newGuardian -> next = *head;
     *head = newGuardian;
 }
@@ -200,32 +199,38 @@ int getRollResult()
     int dado = rand() % 6 + 1;
     return dado;
 }
-void combat(Guardian *jugador, Guardian *enemigos)
+void printCharacterStatus(Guardian *personaje, Guardian *Enemigos)
+{
+        printf("---------------------\n");
+        printf("Enfrentando a %s\n", Enemigos->name);
+        printf("Salud del jugador: %d\n",personaje->health);
+        printf("Salud del enemigo: %d\n", Enemigos->health);
+}
+void StartFight(Guardian *jugador, Guardian *enemigos)
 {
     int turno = 1;
     ColaEnemigosDerrotados *cabezaColaDerrotados = NULL;
-    Guardian JugadorCopia = *jugador;
+    Guardian *JugadorCopia = jugador;
     Guardian *actual = enemigos;
     Guardian *previo = NULL;
     double factor = 1.0;
     int dados = 0;
     int accion1, accion2 = 0;
-    while (jugador->health > 0 && actual != NULL)
-    {
-        printf("---------------------\n");
-        printf("Enfrentando a %s\n", actual->name);
-        printf("Salud del jugador: %d\n", jugador->health);
-        printf("Salud del enemigo: %d\n", actual->health);
-        while (jugador->health > 0 && actual->health > 0)
-        {
+    while (JugadorCopia->health > 0 && actual != NULL)
+    { 
+        while (JugadorCopia->health > 0 && actual->health > 0)
+        {      
+            printf("--------------------------------------------------------\n");
             if (turno == 1)
             {
+                system("cls");
+                printCharacterStatus(JugadorCopia, actual);
                 printf("Es tu turno:\n");
                 printf("1 - Atacar\n");
                 printf("2 - Defenderte\n");
-                printf(" Seleccione una opcion: ");
+                printf("Seleccione una opcion: ");
                 scanf("%d", &accion1);
-                printf("\n");
+      
                 dados = getRollResult();
                 printf("Te ha salido un %d\n", dados);
                 if (accion1 == 1)
@@ -274,16 +279,16 @@ void combat(Guardian *jugador, Guardian *enemigos)
                         {
                             factor = 1.2;
                         }
-                        if (dados % 2 == 1)
-                        {
-                            printf("El enemigo ha aplicado desgaste sobre tus puntos de defensa.\n");
-                            jugador->DefPoints -= (int)(jugador->DefPoints * 0.1);
-                        }
+                        
                         else
                         {
                             printf("Te has defendido y has ganado %d puntos de salud.\n", (int)(jugador->DefPoints * factor));
-                            jugador->health += (int)(jugador->DefPoints * factor);
+                            JugadorCopia->health += (int)(jugador->DefPoints * factor);
                         }
+                    
+                    }else{
+                        printf("El enemigo ha aplicado desgaste sobre tus puntos de defensa.\n");
+                        jugador->DefPoints -= (int)(jugador->DefPoints * 0.1);   
                     }
                 }
                 if (dados == 6)
@@ -293,7 +298,7 @@ void combat(Guardian *jugador, Guardian *enemigos)
                     printf("2 - Defenderte\n");
                     printf(" Seleccione una opcion: ");
                     scanf("%d", &accion1);
-                    printf("\n");
+               
                     dados = getRollResult();
                     printf("Te ha salido un %d\n", dados);
                     if (accion1 == 1)
@@ -322,6 +327,8 @@ void combat(Guardian *jugador, Guardian *enemigos)
                                 printf("Has atacado al enemigo con %d puntos de ataque.\n", (int)(jugador->AttackPoints * factor));
                                 actual->health -= (int)(jugador->AttackPoints * factor);
                             }
+                        }else{
+                            printf("El enemigo ha bloqueado tu ataque.\n");
                         }
                     }
 
@@ -346,15 +353,20 @@ void combat(Guardian *jugador, Guardian *enemigos)
                             else
                             {
                                 printf("Te has defendido y has ganado %d puntos de salud.\n", (int)(jugador->DefPoints * factor));
-                                jugador->health += (int)(jugador->DefPoints * factor);
+                                JugadorCopia->health += (int)(jugador->DefPoints * factor);
                             }
+                        }else{                           
+                                printf("El enemigo ha aplicado desgaste sobre tus puntos de defensa.\n");
+                                jugador->DefPoints -= (int)(jugador->DefPoints * 0.1);                            
                         }
+                    
                     }
                 }
+                sleep(2);
             }
-#pragma region bot
+
             // Turno del Bot
-            if (turno == -1)
+            if (turno == -1 && actual -> health > 0)
             {
                 printf("--------------------------------------------------------\n");
                 printf("Turno del enemigo:\n");
@@ -382,8 +394,10 @@ void combat(Guardian *jugador, Guardian *enemigos)
                         else
                         {
                             printf("El enemigo te ha atacado con %d puntos de ataque.\n", (int)(actual->AttackPoints * factor));
-                            jugador->health -= (int)(actual->AttackPoints * factor);
+                            JugadorCopia->health -= (int)(actual->AttackPoints * factor);
                         }
+                    }else{
+                        printf("Has bloqueado su ataque.\n");
                     }
                 }
 
@@ -403,7 +417,7 @@ void combat(Guardian *jugador, Guardian *enemigos)
                         }
                         if (dados % 2 == 1)
                         {
-                            printf("El enemigo ha aplicado desgaste sobre sus puntos de defensa.\n");
+                            printf("se ha aplicado desgaste sobre sus puntos de defensa.\n");
                             actual->DefPoints -= (int)(actual->DefPoints * 0.1);
                         }
                         else
@@ -411,8 +425,12 @@ void combat(Guardian *jugador, Guardian *enemigos)
                             printf("El bot se ha defendido y ha ganado %d puntos de salud.\n", (int)(actual->DefPoints * factor));
                             actual->health += (int)(actual->DefPoints * factor);
                         }
+                    }else{
+                        printf("El enemigo ha aplicado desgaste sobre sus puntos de defensa.\n");
+                        actual->DefPoints -= (int)(actual->DefPoints * 0.1);
                     }
                 }
+                sleep(2);
                 // Turno Adicional del Bot
                 if (dados == 6)
                 {
@@ -440,17 +458,19 @@ void combat(Guardian *jugador, Guardian *enemigos)
                             }
                             if (dados % 2 == 0)
                             {
-                                printf("El enemigo ha bloqueado tu ataque.\n");
+                                printf("Has bloqueado su ataque.\n");
                             }
                             else
                             {
                                 printf("Te han atacado con %d puntos de ataque.\n", (int)(actual->AttackPoints * factor));
-                                jugador->health -= (int)(actual->AttackPoints * factor);
+                                JugadorCopia->health -= (int)(actual->AttackPoints * factor);
                             }
+                        }else{
+                            printf("Has bloqueado su ataque.\n");
                         }
                     }
 
-                    if (accion1 == 2)
+                    if (accion2 == 2)
                     {
                         printf("El bot ha elegido Defenderse\n");
                         if (dados == 2 || dados == 4 || dados == 6)
@@ -474,21 +494,21 @@ void combat(Guardian *jugador, Guardian *enemigos)
                                 printf("El bot se ha defendido y ha ganado %d puntos de salud.\n", (int)(actual->DefPoints * factor));
                                 actual->health += (int)(actual->DefPoints * factor);
                             }
+                        }else{
+                            printf("El enemigo ha aplicado desgaste sobre sus puntos de defensa.\n");
+                            actual->DefPoints -= (int)(actual->DefPoints * 0.1);
                         }
                     }
+                    sleep(2);
                 }
             }
-        #pragma endregion
-            printf("--------------------------------------------------------\n");
-            printf("Enfrentando a %s\n", actual->name);
-            printf("Salud del jugador: %d\n", jugador->health);
-            printf("Salud del enemigo: %d\n", actual->health);
-            printf("--------------------------------------------------------\n");
+            
             turno *= -1;
             if (actual->health <= 0)
             {
                 // el jugador ha derrotado al enemigo actual
-                printf("¡Has derrotado a %s!\n", actual->name);
+                printf("Has derrotado a %s!\n", actual->name);
+                sleep(3);
                 // Encolar para tener un historial de enemigos
                 encolarEnemigoDerrotado(actual, &cabezaColaDerrotados);
                 // Actualiza los punteros "actual" y "previo"
@@ -500,27 +520,78 @@ void combat(Guardian *jugador, Guardian *enemigos)
                 {
                     previo->next = actual->next; // el enemigo anterior apunta al siguiente enemigo
                 }
-                *jugador = JugadorCopia;         // Reestablece las estidisticas del jugador
+                JugadorCopia = jugador;         // Reestablece las estidisticas del jugador
                 Guardian *enemigo_temp = actual; // guarda el enemigo actual en una variable temporal
                 actual = actual->next;           // actualiza el enemigo actual
                 free(enemigo_temp);              // libera la memoria del enemigo derrotado
-
+                turno = 1;   //reestablece el turno para el jugador
                 if (actual == NULL)
                 {
-                    // se han derrotado a todos los enemigos de la lista
-                    printf("Has derrotado a todos los enemigos!\n");
-
-                    mostrarEnemigosDerrotados(cabezaColaDerrotados);
+                    
+                    printf("Has derrotado a todos los enemigos!\n"); // se han derrotado a todos los enemigos de la lista
+                    getResult(cabezaColaDerrotados); //se guarda en un "historial"
+                    sleep(3);
                     break; // sale del bucle interno si no hay más enemigos en la lista
                 }
                 else
                 {
                     // actualiza el enemigo actual
                     printf("Prepárate para el siguiente enemigo!\n");
+                    sleep(3);
                 }
             }
         }
+        if (jugador-> health <= 0)
+        {
+            printf("Te han derrotado\n");
+            sleep(3);
+        }
     }
+}
+int selectTournament()
+{   
+    int dificultad = 0;
+        printf("Seleccione Dificultad\n");
+        printf("[1] Principiante (3 Enemigos a derrotar)\n");
+        printf("[2] Intermedio   (5 Enemigos a derrotar)\n");
+        printf("[3] Experto      (7 Enemigos a derrotar)\n");
+        scanf("%d", &dificultad);
+        while (dificultad < 1 || dificultad > 3)
+        {
+            system("cls");
+            printf("OPCION NO VALIDA, INGRESE UNA OPCION CORRECTA\n");
+            printf("Seleccione Dificultad\n");
+            printf("[1] Principiante (3 Enemigos a derrotar)\n");
+            printf("[2] Intermedio   (5 Enemigos a derrotar)\n");
+            printf("[3] Experto      (7 Enemigos a derrotar)\n");
+            scanf("%d", &dificultad);
+        }
+        switch (dificultad)
+        {
+        case 1:
+            printf("--------------------------------------------------------\n");
+            printf("Has seleccionado la dificultad Principiante\n");
+            sleep(2);
+            break;
+        case 2:
+            printf("--------------------------------------------------------\n");
+            printf("Has seleccionado la dificultad Intermedia\n");
+            sleep(2);
+            break;
+        case 3:
+            printf("--------------------------------------------------------\n"); 
+            printf("Has seleccionado la dificultad Experto\n");
+            sleep(2);
+            break;
+        default:
+            break;
+        }
+        if (dificultad == 1 || dificultad == 2 ||  dificultad == 3)
+        {
+            dificultad += dificultad + 1;
+        }
+        
+    return dificultad;
 }
 
 int main(int argc, char *argv[])
@@ -531,6 +602,9 @@ int main(int argc, char *argv[])
     
     int id = 0;
     int dificultad = 0;
+    int opcion = 0;
+    int personajeCreado = 0;
+    int personaje_Elegido = 0;
     srand(time(NULL));
     if (argc != 2)
     {
@@ -562,30 +636,37 @@ int main(int argc, char *argv[])
         addGuardian(&listaGuardianes, id, name, type, health, AttackPoints, DefPoints);
     }
     fclose(file);
-    int opcion = 0;
-    int personajeCreado = 0;
-    int personaje_Elegido = 0;
+    // Menu de opciones 
     do
-    {
+    {   
+        system("cls");
         printf("---------------------- BIENVENIDO A The Guardians Tournament --------------------------------\n");
         printf("1. Seleccionar un Personaje para pelear\n");
         printf("2. Cree su propio Personaje\n");
-        printf("3. Iniciar Torneo\n");
-        printf("4. Salir\n");
+        printf("3. Seleccione Dificultad\n");
+        printf("4. Iniciar Torneo\n");
+        printf("5. Salir\n");
         printf("Selecciona una opcion: ");
         scanf("%d", &opcion);
-        printf("\n");
         switch (opcion)
         {
         case 1:
             if(personajeCreado == 0)
             {
-                SelectGuardian(&listaGuardianes, &ListaGuardianJugador);
-                printf("------- LISTA Jugador 1-------\n");
+                system("cls");
+                printGuardian(listaGuardianes);
+                printf("^^^^Lista De Personajes disponibles^^^^^\n");
+                SelectCharacter(&listaGuardianes, &ListaGuardianJugador);
+                system("cls");
+                printf("------- Tu Guardian -------\n");
                 printGuardian(ListaGuardianJugador);
+                sleep(3);
+                personajeCreado = 1;
                 personaje_Elegido = 1;
             }else{
-              printf("Ya tienes un personaje\n");  
+                system("cls");
+                printf("Ya tienes un personaje\n");
+                sleep(2);  
             }
             break;
         case 2:
@@ -593,49 +674,44 @@ int main(int argc, char *argv[])
             {
                 addGuardian_Manual(&ListaGuardianJugador);
                 printGuardian(ListaGuardianJugador);
+                personajeCreado = 1;
                 personaje_Elegido = 1;
             }else{
+                system("cls");
                 printf("Ya tienes un personaje\n");  
+                sleep(2);
             }
             break;
         case 3:
+            dificultad = selectTournament();
+            break;
+        case 4:
             if (personaje_Elegido == 1)
             {
-                printf("Seleccione Dificultad\n");
-                printf("[1] Principiante (3 Enemigos a derrotar)\n");
-                printf("[2] Intermedio   (5 Enemigos a derrotar)\n");
-                printf("[3] Experto      (7 Enemigos a derrotar)\n");
-                scanf("%d", &dificultad);
-                while (dificultad < 1 || dificultad > 3)
+                if (dificultad != 0)
                 {
-                    system("cls");
-                    printf("OPCION NO VALIDA, INGRESE UNA OPCION CORRECTA\n");
-                    printf("Seleccione Dificultad\n");
-                    printf("[1] Principiante (3 Enemigos a derrotar)\n");
-                    printf("[2] Intermedio   (5 Enemigos a derrotar)\n");
-                    printf("[3] Experto      (7 Enemigos a derrotar)\n");
-                    scanf("%d", &dificultad);
-                }
-                if (dificultad == 1 || dificultad == 2 ||  dificultad == 3)
-                {
-                    dificultad += dificultad + 1;
-                }
                 SelectEnemyGuardians(&listaGuardianes, &ListaGuardianesEnemigo, dificultad);
                 printf("------- LISTA Enemigos -------\n");
                 printGuardian(ListaGuardianesEnemigo);
-                combat(ListaGuardianJugador, ListaGuardianesEnemigo);
+                StartFight(ListaGuardianJugador, ListaGuardianesEnemigo);
+                }else{
+                    printf("No has seleccionado dificultad, seleccione una");
+                    sleep(2);
+                }
             }else{
-                printf("No tiene personajes en tu equipo para combatir, seleccione o cree uno\n");
+                system("cls");
+                printf("No tienes un guardian en tu equipo para combatir, seleccione o cree uno\n");
+                sleep(2);
             }
             break;
-        case 4:
+        case 5:
             printf("Saliendo...\n");
             break;
         default:
             printf("Opcion no valida\n");
             break;
         }
-    } while (opcion != 3);
+    } while (opcion != 5);
     freeGuardian(&ListaGuardianJugador);
     freeGuardian(&listaGuardianes);
     return 0;
